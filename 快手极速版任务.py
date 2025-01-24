@@ -1,3 +1,5 @@
+import random
+
 import uiautomator2 as u2
 import time
 
@@ -5,6 +7,7 @@ d = u2.connect()
 d.app_start("com.kuaishou.nebula", stop=True)
 ctx = d.watch_context()
 ctx.when(xpath='//*[@resource-id="com.kuaishou.nebula:id/popup_view"]//*[@resource-id="com.kuaishou.nebula:id/close_btn"]').click()
+ctx.when("立即签到").click()
 ctx.wait_stable()
 
 
@@ -33,7 +36,17 @@ def operate_advertisement_task():
             else:
                 time.sleep(5)
         else:
-            break
+            count_view = d(resourceId="com.kuaishou.nebula:id/neo_count_down_text")
+            if count_view.exists:
+                count_text = count_view.get_text()
+                if ":" in count_text:
+                    sleep_time = int(count_text.split(":")[1])
+                    time.sleep(sleep_time + 10)
+                close_btn = d(resourceId="com.kuaishou.nebula.live_audience_plugin:id/live_audience_clearable_close_container")
+                if close_btn.exists:
+                    d.click(close_btn.center()[0], close_btn.center()[1])
+            else:
+                break
 
 
 def operate_clock_task():
@@ -52,7 +65,7 @@ def operate_video_task():
     while True:
         if time.time() - start_time > 60 * 50:
             break
-        time.sleep(20)
+        time.sleep(25 + random.randrange(0, 20))
         d.swipe_ext(u2.Direction.FORWARD)
 
 
@@ -75,32 +88,35 @@ while True:
         continue
     to_btn = d(className="android.view.View", textMatches="立即签到|去观看|去打卡|去领取")
     if to_btn.exists:
-        text_div = to_btn.sibling(className="android.view.View").child(className="android.view.View")
-        if text_div.exists:
-            if len(text_div) == 2:
-                title = text_div[0].get_text()
-                subtitle = text_div[1].get_text()
-                if title == "看视频赚金币":
-                    continue
-        # to_btn.click()
-        # time.sleep(5)
-    else:
-        break
-    # advert_view = d(className="android.view.View", resourceId="com.kuaishou.nebula.commercial_neo:id/award_video_player_textureview")
-    # if advert_view.exists:
-    #     print("进行广告任务")
-    #     operate_advertisement_task()
-    #     continue
-    # clock_view = d(className="android.view.View", textContains="完成365天打卡任务")
-    # if clock_view.exists:
-    #     print("进行签到任务")
-    #     operate_clock_task()
-    #     continue
-    # video_view = d(className="android.widget.FrameLayout", resourceId="com.kuaishou.nebula:id/texture_view_frame")
-    # if video_view.exists:
-    #     print("进行看视频任务")
-    #     operate_video_task()
-    #     continue
+        need_click_btn = None
+        for btn in to_btn:
+            text_div = btn.sibling(className="android.view.View").child(className="android.view.View")
+            if text_div.exists:
+                if len(text_div) == 2:
+                    title = text_div[0].get_text()
+                    subtitle = text_div[1].get_text()
+                    if title == "看视频赚金币":
+                        continue
+                need_click_btn = btn
+                break
+        if need_click_btn:
+            need_click_btn.click()
+            time.sleep(2)
+            advert_view = d(className="android.view.View", resourceId="com.kuaishou.nebula.commercial_neo:id/award_video_player_textureview")
+            if advert_view.exists:
+                print("进行广告任务")
+                operate_advertisement_task()
+                continue
+            clock_view = d(className="android.view.View", textContains="完成365天打卡任务")
+            if clock_view.exists:
+                print("进行签到任务")
+                operate_clock_task()
+                continue
+            video_view = d(className="android.widget.FrameLayout", resourceId="com.kuaishou.nebula:id/texture_view_frame")
+            if video_view.exists:
+                print("进行看视频任务")
+                operate_video_task()
+                continue
 ctx.close()
 d.shell("settings put system accelerometer_rotation 0")
 print("关闭手机自动旋转")
