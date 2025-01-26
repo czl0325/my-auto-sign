@@ -19,6 +19,9 @@ time.sleep(5)
 
 
 def operate_photo_detail():
+    if d(className="android.view.View", text="做任务 领福卡").exists:
+        print("当前在任务页面，退出")
+        return
     while True:
         # 左上角类型
         time_div2 = d(resourceId="com.kuaishou.nebula.commercial_neo:id/video_countdown", className="android.widget.TextView")
@@ -40,27 +43,38 @@ def operate_photo_detail():
                 break
         # 右上角小图标类型
         time_div1 = d(className="android.widget.TextView", resourceId="com.kuaishou.nebula:id/neo_count_down_text")
-        if time_div1.exists(timeout=3):
-            time_text = time_div1.get_text()
+        time_div4 = d(className="android.widget.TextView", resourceId="com.kuaishou.nebula:id/pendant_task_status")
+        if time_div1.exists(timeout=3) or time_div4.exists(timeout=3):
+            time_text = time_div1.get_text() if time_div1.exists else time_div4.get_text()
             print(f"属于右上角小图标时间类型,获取到的时间是:{time_text}")
             if ":" in time_text:
                 sleep_time = int(time_text.split(":")[1])
+                print(f"开始睡眠{sleep_time + 5}秒")
                 time.sleep(sleep_time + 5)
+                dialog = d(resourceId="com.kuaishou.nebula:id/krn_content_container", className="android.widget.FrameLayout")
+                print(f"是否有弹窗存在:{dialog.exists}")
+                if dialog.exists:
+                    d.click(dialog.center()[0], dialog.bounds()[1] - 20)
+                    time.sleep(3)
+                # com.kuaishou.nebula.live_audience_plugin:id/live_audience_clearable_close_container
                 close_btn = d(resourceId="com.kuaishou.nebula.live_audience_plugin:id/live_audience_clearable_close_container", className="android.widget.FrameLayout")
+                print(f"右上角关闭按钮是否存在:{close_btn.exists}")
                 if close_btn.exists:
                     d.click(close_btn.center()[0], close_btn.center()[1])
                     time.sleep(3)
-                exit_btn = d(className="android.widget.TextView", text="退出")
+                exit_btn = d(className="android.widget.TextView", text="退出直播间")
+                print(f"退出直播间按钮是否存在:{exit_btn.exists}")
                 if exit_btn.exists:
                     d.click(exit_btn.center()[0], exit_btn.center()[1])
                     time.sleep(5)
-                    next_btn = d(resourceId="com.kuaishou.nebula.commercial_neo:id/again_medium_icon_dialog_ensure_text", text="领取奖励")
-                    if next_btn.exists:
-                        next_btn.click()
-                        time.sleep(5)
-                        continue
-                    else:
-                        break
+                next_btn = d(resourceId="com.kuaishou.nebula.commercial_neo:id/again_medium_icon_dialog_ensure_text", text="领取奖励")
+                print(f"领取奖励按钮是否存在:{next_btn.exists}")
+                if next_btn.exists:
+                    next_btn.click()
+                    time.sleep(5)
+                    continue
+                else:
+                    break
         time_div3 = d(className="android.widget.ImageView", resourceId="com.kuaishou.nebula:id/neo_count_down_bg_image")
         if time_div3.exists(timeout=3):
             print("第三种情况，无法定位到倒计时时间...")
@@ -84,6 +98,7 @@ def foca_task():
         task_btn.click()
         time.sleep(5)
         while True:
+            print("开始查找去完成按钮...")
             try:
                 to_btn = d(className="android.widget.Button", textMatches="去签到|去完成")
                 if to_btn.exists:
@@ -105,14 +120,18 @@ def foca_task():
 
 def take_foca():
     time.sleep(4)
-    while True:
+    try_count = 5
+    print("开始查找<开心收下>按钮...")
+    while try_count >= 0:
         image = d.screenshot(format='opencv')
         pt = find_button(image, "slot1.png")
-        print(f"查找按钮结果={pt}")
+        print(f"查找<开心收下>按钮结果={pt}")
         if pt:
             d.click(int(pt[0]) + 100, int(pt[1]) + 50)
             time.sleep(5)
             break
+        try_count -= 1
+        print(f"查找<开心收下>按钮，重试次数{try_count}...")
         time.sleep(5)
 
 
