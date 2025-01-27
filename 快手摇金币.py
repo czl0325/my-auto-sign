@@ -30,6 +30,14 @@ def close_dialog():
         try_count -= 1
 
 
+def back_to_foca_main():
+    while True:
+        if d(className="android.view.View", text="做任务 领福卡").exists:
+            break
+        d.press("back")
+        time.sleep(0.2)
+
+
 def operate_photo_detail():
     if d(className="android.view.View", text="做任务 领福卡").exists:
         print("当前在任务页面，退出")
@@ -88,7 +96,9 @@ def operate_photo_detail():
                 else:
                     break
         time_div3 = d(className="android.widget.ImageView", resourceId="com.kuaishou.nebula:id/neo_count_down_bg_image")
-        if time_div3.exists(timeout=3):
+        time_div5 = d(className="android.widget.ImageView", resourceId="com.kuaishou.nebula:id/pendant_bg")
+        # com.kuaishou.nebula:id/kem_activity_task_pendant
+        if time_div3.exists(timeout=3) or time_div5.exists(timeout=3):
             print("第三种情况，无法定位到倒计时时间...")
             time.sleep(70)
             close_btn = d(resourceId="com.kuaishou.nebula.live_audience_plugin:id/live_audience_clearable_close_container", className="android.widget.FrameLayout")
@@ -99,44 +109,64 @@ def operate_photo_detail():
                 if exit_btn.exists:
                     d.click(exit_btn.center()[0], exit_btn.center()[1])
                     time.sleep(2)
-                    break
+                break
         time.sleep(5)
     print("做任务结束，循环退出")
 
 
-def foca_task():
+def find_task_btn():
+    try_count = 0
+    while True:
+        print("开始查找去完成按钮...")
+        try:
+            to_btn = d(className="android.widget.Button", textMatches="去签到|去完成|看广告")
+            if to_btn.exists:
+                for view in to_btn:
+                    # text_div = view.left(className="android.view.View").sibling(className="android.view.View", index=1).child(className="android.view.View", index=0)
+                    # if text_div.exists:
+                    #     task_name = text_div.get_text()
+                    #     print(f"点击按钮：{task_name}")
+                    view.click()
+                    time.sleep(2)
+                    operate_photo_detail()
+                    take_foca()
+                    break
+            else:
+                try_count += 1
+                if try_count > 3:
+                    print("未找到可点击按钮，退出循环")
+                    break
+        except Exception as e:
+            print(e)
+            continue
+        time.sleep(4)
+
+
+# 福卡首页
+def foca_main():
     task_btn = d(className="android.widget.Button", text="做任务领卡")
     if task_btn.exists:
         task_btn.click()
         time.sleep(5)
         close_dialog()
-        while True:
-            print("开始查找去完成按钮...")
-            try:
-                to_btn = d(className="android.widget.Button", textMatches="去签到|去完成")
-                if to_btn.exists:
-                    for view in to_btn:
-                        text_div = view.left(className="android.view.View").sibling(className="android.view.View", index=1).child(className="android.view.View", index=0)
-                        task_name = None
-                        if text_div.exists:
-                            task_name = text_div.get_text()
-                            print(f"点击按钮：{task_name}")
-                        view.click()
-                        time.sleep(2)
-                        operate_photo_detail()
-                        take_foca()
-                        break
-            except Exception as e:
-                print(e)
-                continue
-            time.sleep(4)
+        find_task_btn()
 
 
+# 发财树首页
+def pachira_main():
+    get_btn = d(className="android.widget.Button", text="得次数")
+    if get_btn.exists:
+        get_btn.click()
+        time.sleep(5)
+        find_task_btn()
+
+
+# 收下福卡
 def take_foca():
     time.sleep(4)
-    try_count = 5
+    try_count = 2
     print("开始查找<开心收下>按钮...")
-    while try_count >= 0:
+    while try_count > 0:
         image = d.screenshot(format='opencv')
         pt = find_button(image, "kuaishou/ks-take.png")
         print(f"查找<开心收下>按钮结果={pt}")
@@ -145,8 +175,36 @@ def take_foca():
             time.sleep(5)
             break
         try_count -= 1
-        print(f"查找<开心收下>按钮，重试次数{try_count}...")
+        print(f"查找<开心收下>按钮，重试次数{2 - try_count}...")
         time.sleep(5)
+
+
+# 点击摇金币
+def waffle_coin():
+    while True:
+        coin_btn = d(className="android.widget.Button", resourceId="main-shake-button")
+        if coin_btn.exists:
+            print("点击摇金币按钮")
+            coin_btn.click()
+            time.sleep(2)
+            try_count = 3
+            while try_count >= 0:
+                print("进入点击摇金币结果循环...")
+                receive_btn = d(className="android.widget.Button", text="开心收下")
+                if receive_btn.exists:
+                    print("点击开心收下")
+                    receive_btn.click()
+                    time.sleep(3)
+                    break
+                else:
+                    pt = find_button(d.screenshot(format='opencv'), "./kuaishou/ks-close.png")
+                    if pt:
+                        print("点击关闭")
+                        d.click(int(pt[0]) + 10, int(pt[1]) + 10)
+                        time.sleep(2)
+                        break
+                try_count -= 1
+                time.sleep(3)
 
 
 print("查找去赚钱按钮...")
@@ -158,24 +216,31 @@ print("进入去赚钱板块")
 time.sleep(10)
 ctx.wait_stable()
 close_dialog()
-yao_btn = d(className="android.view.View", textContains="摇红包")
-if yao_btn.exists:
-    d.click(yao_btn.center()[0], yao_btn.center()[1])
-    time.sleep(8)
-    close_dialog()
-fu_btn = d(className="android.widget.Button", text="集福卡")
-if fu_btn.exists:
-    fu_btn.click()
-    print("点击集福卡")
-    time.sleep(8)
-    close_dialog()
-    foca_task()
-# while True:
-#     current_info = d.app_current()
-#     if current_info.get("activity") == "com.yxcorp.gifshow.detail.PhotoDetailActivity":
-#         close_btn = d(resourceId="com.kuaishou.nebula.live_audience_plugin:id/live_audience_clearable_close_container", className="android.widget.FrameLayout")
-#         if close_btn.exists:
-#             d.click(close_btn.center()[0], close_btn.center()[1])
-#             time.sleep(4)
-#     elif current_info.get("activity") == "com.yxcorp.gifshow.webview.KwaiYodaWebViewActivity":
-#         break
+while True:
+    print("查找首页任务...")
+    foca_btn = d(className="android.view.View", textContains="集福卡")
+    if foca_btn.exists:
+        d.click(foca_btn.center()[0], foca_btn.center()[1])
+        time.sleep(5)
+        close_dialog()
+        pachira_btn = d(className="android.widget.Button", text="发财树")
+        if pachira_btn.exists:
+            pachira_btn.click()
+            time.sleep(5)
+            close_dialog()
+            pachira_main()
+        foca_main()
+    time.sleep(5)
+# yao_btn = d(className="android.view.View", textContains="摇红包")
+# if yao_btn.exists:
+#     d.click(yao_btn.center()[0], yao_btn.center()[1])
+#     time.sleep(8)
+#     close_dialog()
+# waffle_coin()
+# fu_btn = d(className="android.widget.Button", text="集福卡")
+# if fu_btn.exists:
+#     fu_btn.click()
+#     print("点击集福卡")
+#     time.sleep(8)
+#     close_dialog()
+#     foca_main()
