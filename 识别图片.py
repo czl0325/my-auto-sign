@@ -3,7 +3,7 @@ import numpy as np
 
 # 读取截图和模板图像
 screenshot = cv2.imread('screenshot.png')
-template = cv2.imread('slot1.png')
+template = cv2.imread('kuaishou/ks-take.png')
 
 # 转换为灰度图像
 screenshot_gray = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)

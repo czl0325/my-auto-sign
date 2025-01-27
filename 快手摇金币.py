@@ -18,6 +18,18 @@ ctx.start()
 time.sleep(5)
 
 
+def close_dialog():
+    try_count = 2
+    while try_count > 0:
+        pt = find_button(d.screenshot(format='opencv'), "./kuaishou/ks-close.png")
+        if pt:
+            d.click(int(pt[0]) + 10, int(pt[1]) + 10)
+            time.sleep(2)
+            break
+        time.sleep(4)
+        try_count -= 1
+
+
 def operate_photo_detail():
     if d(className="android.view.View", text="做任务 领福卡").exists:
         print("当前在任务页面，退出")
@@ -62,7 +74,7 @@ def operate_photo_detail():
                 if close_btn.exists:
                     d.click(close_btn.center()[0], close_btn.center()[1])
                     time.sleep(3)
-                exit_btn = d(className="android.widget.TextView", text="退出直播间")
+                exit_btn = d(className="android.widget.TextView", textMatches=r"退出直播间|退出")
                 print(f"退出直播间按钮是否存在:{exit_btn.exists}")
                 if exit_btn.exists:
                     d.click(exit_btn.center()[0], exit_btn.center()[1])
@@ -97,6 +109,7 @@ def foca_task():
     if task_btn.exists:
         task_btn.click()
         time.sleep(5)
+        close_dialog()
         while True:
             print("开始查找去完成按钮...")
             try:
@@ -116,6 +129,7 @@ def foca_task():
             except Exception as e:
                 print(e)
                 continue
+            time.sleep(4)
 
 
 def take_foca():
@@ -124,7 +138,7 @@ def take_foca():
     print("开始查找<开心收下>按钮...")
     while try_count >= 0:
         image = d.screenshot(format='opencv')
-        pt = find_button(image, "slot1.png")
+        pt = find_button(image, "kuaishou/ks-take.png")
         print(f"查找<开心收下>按钮结果={pt}")
         if pt:
             d.click(int(pt[0]) + 100, int(pt[1]) + 50)
@@ -143,16 +157,18 @@ earn_btn.click()
 print("进入去赚钱板块")
 time.sleep(10)
 ctx.wait_stable()
-
+close_dialog()
 yao_btn = d(className="android.view.View", textContains="摇红包")
 if yao_btn.exists:
     d.click(yao_btn.center()[0], yao_btn.center()[1])
     time.sleep(8)
+    close_dialog()
 fu_btn = d(className="android.widget.Button", text="集福卡")
 if fu_btn.exists:
     fu_btn.click()
     print("点击集福卡")
     time.sleep(8)
+    close_dialog()
     foca_task()
 # while True:
 #     current_info = d.app_current()

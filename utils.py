@@ -27,5 +27,5 @@ def find_button(image, btn_path):
 
 
 if __name__ == '__main__':
-    pt = find_button(cv2.imread('screenshot.png'), 'slot1.png')
+    pt = find_button(cv2.imread('screenshot.png'), 'kuaishou/ks-take.png')
     print(pt[0])
