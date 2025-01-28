@@ -188,7 +188,7 @@ def take_foca():
 # 点击摇金币
 def waffle_coin():
     while True:
-        coin_btn = d(className="android.widget.Button", resourceId="main-shake-button")
+        coin_btn = d(className="android.widget.Button", resourceId="PRIMARY_BTN")
         if coin_btn.exists:
             print("点击摇金币按钮")
             coin_btn.click()
@@ -197,11 +197,22 @@ def waffle_coin():
             while try_count >= 0:
                 print("进入点击摇金币结果循环...")
                 receive_btn = d(className="android.widget.Button", text="开心收下")
+                continue_btn = d(className="android.widget.Button", text="继续摇")
+                look_btn = d(className="android.widget.Button", text="去观看")
                 if receive_btn.exists:
                     print("点击开心收下")
                     receive_btn.click()
                     time.sleep(3)
                     break
+                elif continue_btn.exists:
+                    print("点击继续摇")
+                    continue_btn.click()
+                    time.sleep(3)
+                elif look_btn.exists:
+                    print("点击去观看")
+                    look_btn.click()
+                    time.sleep(3)
+                    operate_photo_detail()
                 else:
                     pt = find_button(d.screenshot(format='opencv'), "./kuaishou/ks-close.png")
                     if pt:
@@ -236,6 +247,7 @@ while True:
             pachira_btn.click()
             time.sleep(5)
             close_dialog()
+            # waffle_coin()
             pachira_main()
         foca_main()
     time.sleep(5)
