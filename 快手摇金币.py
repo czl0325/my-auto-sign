@@ -14,12 +14,13 @@ ctx.when("立即签到").click()
 ctx.when("看内容最高可得1000金币").click()
 ctx.when("领取奖励").click()
 ctx.when("开心收下").click()
+ctx.when("刷新").click()
 ctx.start()
 time.sleep(5)
 
 
 def close_dialog():
-    try_count = 2
+    try_count = 1
     while try_count > 0:
         pt = find_button(d.screenshot(format='opencv'), "./kuaishou/ks-close.png")
         if pt:
@@ -119,13 +120,16 @@ def find_task_btn():
     while True:
         print("开始查找去完成按钮...")
         try:
-            to_btn = d(className="android.widget.Button", textMatches="去签到|去完成|看广告")
+            to_btn = d(className="android.widget.Button", textMatches="去签到|去完成|看广告|去观看")
             if to_btn.exists:
                 for view in to_btn:
-                    # text_div = view.left(className="android.view.View").sibling(className="android.view.View", index=1).child(className="android.view.View", index=0)
-                    # if text_div.exists:
-                    #     task_name = text_div.get_text()
-                    #     print(f"点击按钮：{task_name}")
+                    text_div = view.left(className="android.view.View", index=1).child(className="android.view.View", index=0)
+                    task_name = None
+                    if text_div.exists:
+                        task_name = text_div.get_text()
+                    if not task_name or "打开喜番" in task_name:
+                        continue
+                    print(f"点击按钮：{task_name}")
                     view.click()
                     time.sleep(2)
                     operate_photo_detail()
@@ -154,8 +158,10 @@ def foca_main():
 
 # 发财树首页
 def pachira_main():
-    get_btn = d(className="android.widget.Button", text="得次数")
+    time.sleep(5)
+    get_btn = d(className="android.view.View", text="得次数")
     if get_btn.exists:
+        print("点击得次数按钮")
         get_btn.click()
         time.sleep(5)
         find_task_btn()
@@ -220,11 +226,13 @@ while True:
     print("查找首页任务...")
     foca_btn = d(className="android.view.View", textContains="集福卡")
     if foca_btn.exists:
+        print("进入集福卡页面")
         d.click(foca_btn.center()[0], foca_btn.center()[1])
         time.sleep(5)
         close_dialog()
         pachira_btn = d(className="android.widget.Button", text="发财树")
         if pachira_btn.exists:
+            print("进入发财树页面")
             pachira_btn.click()
             time.sleep(5)
             close_dialog()
