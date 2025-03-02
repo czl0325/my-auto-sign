@@ -36,6 +36,7 @@ def task_loop():
                 seconds1 = countdown_to_seconds(last_time)
                 seconds2 = countdown_to_seconds(countdown_time)
                 if abs(seconds1 - seconds2) <= 5:
+                    print("倒计时停了，滑动进入下一个视频。。。")
                     d.swipe_ext(Direction.FORWARD)
             last_time = countdown_time
         time.sleep(10)
