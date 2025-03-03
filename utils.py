@@ -26,6 +26,9 @@ def find_button(image, btn_path):
     return None
 
 
-if __name__ == '__main__':
-    pt = find_button(cv2.imread('screenshot.png'), 'kuaishou/ks-take.png')
-    print(pt[0])
+def countdown_to_seconds(countdown_str):
+    """
+    将倒计时字符串（如 "11:35"）转换为总秒数
+    """
+    minutes, seconds = map(int, countdown_str.split(":"))
+    return minutes * 60 + seconds
