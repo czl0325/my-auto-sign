@@ -10,6 +10,7 @@ class VideoTask(Enum):
     RIGHT_TOP = 2
     DURATION = 3
 
+
 d = u2.connect()
 screen_width, screen_height = d.window_size()
 d.app_start("com.kuaishou.nebula", stop=True, use_monkey=True)
@@ -48,16 +49,21 @@ def check_popup():
 
 
 def finish_task(video_type):
-    close_btn = d(resourceId="com.kuaishou.nebula.live_audience_plugin:id/live_audience_clearable_close_container", className="android.widget.FrameLayout")
-    print(f"右上角关闭按钮是否存在:{close_btn.exists}")
-    if close_btn.exists:
-        d.click(close_btn.center()[0], close_btn.center()[1])
-        time.sleep(3)
-    back_btn = d(resourceId="com.kuaishou.nebula.live_audience_plugin:id/live_anchor_avatar_icon", className="android.widget.ImageView")
-    if back_btn.exists:
-        d.click(back_btn.center()[0], back_btn.center()[1])
-        time.sleep(3)
-    video_type = None
+    try_count = 5
+    while try_count >= 0:
+        close_btn = d(resourceId="com.kuaishou.nebula.live_audience_plugin:id/live_audience_clearable_close_container", className="android.widget.FrameLayout")
+        print(f"右上角关闭按钮是否存在:{close_btn.exists}")
+        if close_btn.exists:
+            d.click(close_btn.center()[0], close_btn.center()[1])
+            time.sleep(3)
+            video_type = None
+            back_btn = d(resourceId="com.kuaishou.nebula.live_audience_plugin:id/live_anchor_avatar_icon", className="android.widget.ImageView")
+            if back_btn.exists:
+                d.click(back_btn.center()[0], back_btn.center()[1])
+                time.sleep(3)
+                break
+        else:
+            time.sleep(3)
 
 
 def to_earn():
@@ -81,10 +87,6 @@ def task_loop():
             try:
                 countdown_text = countdown_view.get_text()
                 print(countdown_text)
-                if countdown_text == "领取奖励":
-                    print("当前已完成任务。")
-                    d.press("back")
-                    break
                 countdown_time = countdown_text.replace("倒计时 ", "")
                 if last_time:
                     seconds1 = countdown_to_seconds(last_time)
@@ -96,6 +98,12 @@ def task_loop():
             except Exception as e:
                 video_type = None
                 to_earn()
+        else:
+            if video_type == VideoTask.DURATION:
+                finish_btn = d(resourceId="com.kuaishou.nebula:id/pendant_bg", className="android.widget.ImageView")
+                if finish_btn.exists:
+                    print("30分钟观看任务完成，退出循环")
+                    break
         time_div1 = d(className="android.widget.TextView", resourceId="com.kuaishou.nebula:id/neo_count_down_text")
         if time_div1.exists:
             time_text = time_div1.get_text()
@@ -111,6 +119,7 @@ def task_loop():
             if "成功领取" in time_text:
                 d.click(time_div2.center()[0], time_div2.center()[1])
                 time.sleep(5)
+                break
         award_btn = d(resourceId="com.kuaishou.nebula:id/again_dialog_ensure_text", text="领取奖励")
         if award_btn.exists:
             award_btn.click()
@@ -132,26 +141,35 @@ def task_loop():
         time.sleep(10)
 
 
-check_popup()
-to_earn()
-clock_in_view = d(className="android.view.View", textContains="拿好礼")
-if clock_in_view.exists(timeout=10):
-    print("点击拿好礼")
-    d.click(clock_in_view.center()[0], clock_in_view.center()[1])
-    time.sleep(5)
-else:
-    raise Exception("找不到拿好礼按钮，请重启程序")
-print("当前位于365天签到领好礼页面")
-sign_btn = d(className="android.widget.Button", text="去签到")
-if sign_btn.exists:
-    print("点击去签到")
-    d.click(sign_btn.center()[0], sign_btn.center()[1])
-    time.sleep(5)
-while True:
-    look_btn = d(className="android.widget.Button", text="去观看")
-    if look_btn.exists:
-        look_btn[0].click()
+def do_365():
+    clock_in_view = d(className="android.view.View", textContains="拿好礼")
+    if clock_in_view.exists(timeout=10):
+        print("点击拿好礼")
+        d.click(clock_in_view.center()[0], clock_in_view.center()[1])
+        time.sleep(5)
+    else:
+        raise Exception("找不到拿好礼按钮，请重启程序")
+    print("当前位于365天签到领好礼页面")
+    sign_btn = d(className="android.widget.Button", text="去签到")
+    if sign_btn.exists:
+        print("点击去签到")
+        d.click(sign_btn.center()[0], sign_btn.center()[1])
+        time.sleep(5)
+    while True:
+        look_btn = d(className="android.widget.Button", text="去观看")
+        if look_btn.exists:
+            look_btn[-1].click()
+            time.sleep(5)
+            task_loop()
+        else:
+            break
+    last_btn = d(className="android.widget.Button", text="看视频赚金币")
+    if last_btn.exists:
+        last_btn.click()
         time.sleep(5)
         task_loop()
-    else:
-        break
+
+
+check_popup()
+to_earn()
+do_365()
