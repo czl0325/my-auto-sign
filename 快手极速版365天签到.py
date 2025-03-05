@@ -38,23 +38,27 @@ def check_popup():
             d.click(int(pt[0]) + 10, int(pt[1]) + 10)
             time.sleep(2)
         return
-    pt = find_button(d.screenshot(format='opencv'), "./kuaishou/ks-close.png")
-    if pt:
-        d.click(int(pt[0]) + 10, int(pt[1]) + 10)
-        time.sleep(2)
     close_btn = d(resourceId="com.kuaishou.nebula:id/close_btn", className="android.widget.ImageView")
     if close_btn.exists:
         d.click(close_btn.center()[0], close_btn.center()[1])
         time.sleep(2)
+    invite_btn = d(className="android.widget.TextView", text="邀请新用户可得")
+    if invite_btn.exists:
+        pt = find_button(d.screenshot(format='opencv'), "./kuaishou/ks-close-white.png")
+        if pt:
+            d.click(int(pt[0]) + 10, int(pt[1]) + 10)
+            time.sleep(2)
 
 
 def finish_task(video_type):
     try_count = 5
+    is_click = False
     while try_count >= 0:
         close_btn = d(resourceId="com.kuaishou.nebula.live_audience_plugin:id/live_audience_clearable_close_container", className="android.widget.FrameLayout")
         print(f"右上角关闭按钮是否存在:{close_btn.exists}")
         if close_btn.exists:
             d.click(close_btn.center()[0], close_btn.center()[1])
+            is_click = True
             time.sleep(3)
             video_type = None
             back_btn = d(resourceId="com.kuaishou.nebula.live_audience_plugin:id/live_anchor_avatar_icon", className="android.widget.ImageView")
@@ -63,7 +67,10 @@ def finish_task(video_type):
                 time.sleep(3)
                 break
         else:
+            if try_count <= 3 and is_click:
+                break
             time.sleep(3)
+        try_count -= 1
 
 
 def to_earn():
@@ -111,6 +118,9 @@ def task_loop():
             video_type = VideoTask.RIGHT_TOP
             if time_text == "已领取":
                 finish_task(video_type)
+        else:
+            if video_type == VideoTask.RIGHT_TOP:
+                finish_task(video_type)
         time_div2 = d(resourceId="com.kuaishou.nebula.commercial_neo:id/video_countdown", className="android.widget.TextView")
         if time_div2.exists:
             time_text = time_div2.get_text()
@@ -119,10 +129,16 @@ def task_loop():
             if "成功领取" in time_text:
                 d.click(time_div2.center()[0], time_div2.center()[1])
                 time.sleep(5)
+        else:
+            if video_type == VideoTask.LEFT_TOP:
                 break
-        award_btn = d(resourceId="com.kuaishou.nebula:id/again_dialog_ensure_text", text="领取奖励")
-        if award_btn.exists:
-            award_btn.click()
+        award_btn1 = d(resourceId="com.kuaishou.nebula:id/again_dialog_ensure_text", text="领取奖励")
+        if award_btn1.exists:
+            d.click(award_btn1.center()[0], award_btn1.center()[1])
+            time.sleep(5)
+        award_btn2 = d(resourceId="com.kuaishou.nebula.commercial_neo:id/again_medium_icon_dialog_ensure_text", text="领取奖励")
+        if award_btn2.exists:
+            d.click(award_btn2.center()[0], award_btn2.center()[1])
             time.sleep(5)
         # 退出直播间退出循环
         quit_btn = d(className="android.widget.TextView", text="退出直播间")
